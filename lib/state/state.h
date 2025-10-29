@@ -7,8 +7,9 @@
 enum class OperationMode {
     RGB,
     LTT,
+    PARTY,
     WIFI,
-    OFF,
+    // OFF removed
 };
 
 class StateHandler {
@@ -43,17 +44,17 @@ public:
                 lastButtonPress = now;
                 
                 switch (currentMode) {
-                    case OperationMode::OFF:
-                        currentMode = OperationMode::RGB;
-                        break;
                     case OperationMode::RGB:
                         currentMode = OperationMode::LTT;
                         break;
                     case OperationMode::LTT:
+                        currentMode = OperationMode::PARTY;
+                        break;
+                    case OperationMode::PARTY:
                         currentMode = OperationMode::WIFI;
                         break;
                     case OperationMode::WIFI:
-                        currentMode = OperationMode::OFF;
+                        currentMode = OperationMode::RGB; // wrap around
                         break;
                 }
             }

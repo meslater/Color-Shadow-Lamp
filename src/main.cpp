@@ -3,6 +3,7 @@
 #include "LTTController.h"
 #include "WiFiManager.h"
 #include "State.h"
+#include "PartyController.h"
 
 const int RED_PIN = 5;
 const int GREEN_PIN = 6;
@@ -23,9 +24,9 @@ int lastPot1 = 0;
 int lastPot2 = 0;
 int lastPot3 = 0;
 
-//unsigned long potTimer = 0;
-//const int potInterval = 50; // Check every 50ms
-//bool potChanged = false;
+// Party speed mapping (pot -> degrees per second)
+const float PARTY_SPEED_MIN = 10.0f;
+const float PARTY_SPEED_MAX = 720.0f; // fast full-rotation speeds
 
 LEDController ledController(
     RED_PIN, GREEN_PIN, BLUE_PIN,
@@ -34,6 +35,7 @@ LEDController ledController(
 LTTController lttController(ledController);
 WiFiManager wifiManager(ledController);
 StateHandler stateHandler(ledController);
+PartyController partyController(ledController);
 
 int readAveragedADC(int pin, int samples = 4)
 {
@@ -60,6 +62,7 @@ void setup()
   Serial.begin(115200);
   ledController.begin();
   stateHandler.begin();
+  partyController.begin();
 
   analogSetAttenuation(ADC_2_5db);
   analogSetPinAttenuation(POT_RED_PIN, ADC_2_5db);
@@ -118,6 +121,34 @@ void loop()
     }
     wasInWiFiMode = isInWiFiMode;
 
+    // PARTY mode entry/exit handling
+    static bool wasInPartyMode = false;
+    bool isInPartyMode = stateHandler.getCurrentMode() == OperationMode::PARTY;
+
+    if (isInPartyMode && !wasInPartyMode) {
+      // Entering PARTY
+      partyController.start();
+    } else if (!isInPartyMode && wasInPartyMode) {
+      // Leaving PARTY
+      partyController.stop();
+    }
+    wasInPartyMode = isInPartyMode;
+
+    // If we're in PARTY, map pots to party parameters:
+    // - pot1 -> max brightness (0..1)
+    // - pot2 -> speed (mapped to PARTY_SPEED_MIN..PARTY_SPEED_MAX deg/sec)
+    // - pot3 -> saturation (0..1)
+    if (isInPartyMode) {
+      const float PWM_MAX_F = 2047.0f;
+      float brightness = constrain(pot1 / PWM_MAX_F, 0.0f, 1.0f);
+      float saturation = constrain(pot3 / PWM_MAX_F, 0.0f, 1.0f);
+      float speed = (pot2 / PWM_MAX_F) * (PARTY_SPEED_MAX - PARTY_SPEED_MIN) + PARTY_SPEED_MIN;
+
+      partyController.setBrightness(brightness);
+      partyController.setSaturation(saturation);
+      partyController.setSpeed(speed);
+    }
+
     switch (stateHandler.getCurrentMode())
     {
     case OperationMode::RGB:
@@ -128,7 +159,9 @@ void loop()
     case OperationMode::LTT:
       lttController.updateLTT(pot1, pot2, pot3);
       break;
-    case OperationMode::OFF:
+    case OperationMode::PARTY:
+      partyController.update();
+      break;
     case OperationMode::WIFI:
       // LED control happens via WiFi in WIFI mode
       break;
