@@ -3,3 +3,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+esphome/components/color_shadow_light/__pycache__/*
+esphome/.esphome/
+esphome/secrets.yaml
