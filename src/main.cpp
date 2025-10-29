@@ -102,13 +102,6 @@ void loop()
     pot2 = calculateMovingAverage(pot2Values, MOVING_AVERAGE_SIZE);
     pot3 = calculateMovingAverage(pot3Values, MOVING_AVERAGE_SIZE);
 
-    //Serial.print("pot1: ");
-    //Serial.print(pot1);
-    //Serial.print(", pot2: ");
-    //Serial.print(pot2);
-    //Serial.print(", pot3: ");
-    //Serial.println(pot3);
-
     static bool wasInWiFiMode = false;
     bool isInWiFiMode = stateHandler.getCurrentMode() == OperationMode::WIFI;
 
