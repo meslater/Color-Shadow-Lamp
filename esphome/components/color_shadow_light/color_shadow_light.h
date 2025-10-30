@@ -98,7 +98,12 @@ class ColorShadowLight : public Component, public light::LightOutput {
     this->is_on_ = true;
     this->manual_enabled_ = true;
 
-    this->apply_to_outputs_(remote.get_red(), remote.get_green(), remote.get_blue());
+    float red = 0.0f;
+    float green = 0.0f;
+    float blue = 0.0f;
+    remote.as_rgb(&red, &green, &blue, 0.0f, false);
+
+    this->apply_to_outputs_(red, green, blue);
 
     if (this->pending_manual_update_) {
       this->pending_manual_update_ = false;
