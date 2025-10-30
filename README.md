@@ -1,3 +1,5 @@
+This fork adds a fully functional ESPHome firmware for the Color Shadow Lamp.  See the readme in the esphome directory for details.
+
 To upload code via USB: 
 1. Hold the button down
 2. Apply 12V
